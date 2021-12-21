@@ -28,6 +28,8 @@ target 'AgodaVideoApp' do
     # Pods for testing
   end
 
+  #rm -rf ./Pods/ && pod install --repo-update
+
   # Enables Flipper.
   #
   # Note that if you have use_frameworks! enabled, Flipper will not work and
@@ -38,5 +40,30 @@ target 'AgodaVideoApp' do
     flipper_post_install(installer)
     react_native_post_install(installer)
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
+
+    #https://stackoverflow.com/questions/69276367/command-compileswiftsources-failed-with-a-nonzero-exit-code-xcode-13
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+      # some older pods don't support some architectures, anything over iOS 11 resolves that
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+        config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+        config.build_settings["ONLY_ACTIVE_ARCH"] = "YES"
+      end
+    end
+
+    # Apple Silicon builds require a library path tweak for Swift library discovery or "symbol not found" for swift things
+    installer.aggregate_targets.each do |aggregate_target| 
+      aggregate_target.user_project.native_targets.each do |target|
+        target.build_configurations.each do |config|
+          config.build_settings['LIBRARY_SEARCH_PATHS'] = ['$(SDKROOT)/usr/lib/swift', '$(inherited)']
+        end
+      end
+      aggregate_target.user_project.save
+    end
+
+    # ...but if you bump iOS deployment target, Flipper barfs again "Time.h:52:17: error: typedef redefinition with different types"
+    # We need to make one crude patch to RCT-Folly - set `__IPHONE_10_0` to our iOS target + 1
+    # https://github.com/facebook/flipper/issues/834 - 84 comments and still going...
+    `sed -i -e  $'s/__IPHONE_10_0/__IPHONE_12_0/' #{installer.sandbox.root}/RCT-Folly/folly/portability/Time.h`
   end
 end

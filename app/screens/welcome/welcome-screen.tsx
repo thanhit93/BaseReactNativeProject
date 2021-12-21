@@ -1,5 +1,5 @@
 import React, { FC } from "react"
-import { View, ViewStyle, TextStyle, ImageStyle, SafeAreaView } from "react-native"
+import { View, ViewStyle, TextStyle, ImageStyle, SafeAreaView, PixelRatio, useWindowDimensions } from "react-native"
 import { StackScreenProps } from "@react-navigation/stack"
 import { observer } from "mobx-react-lite"
 import {
@@ -12,8 +12,12 @@ import {
 } from "../../components"
 import { color, spacing, typography } from "../../theme"
 import { NavigatorParamList } from "../../navigators"
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
+import { widthPercentageToDP, heightPercentageToDP, heightDP } from '../../utils/screen_util'
 
 const bowserLogo = require("./bowser.png")
+
+// format code //Shift + Option + F
 
 const FULL: ViewStyle = { flex: 1 }
 const CONTAINER: ViewStyle = {
@@ -88,7 +92,9 @@ const FOOTER_CONTENT: ViewStyle = {
 
 export const WelcomeScreen: FC<StackScreenProps<NavigatorParamList, "welcome">> = observer(
   ({ navigation }) => {
-    const nextScreen = () => navigation.navigate("demo")
+    // const nextScreen = () => navigation.navigate("demo")
+    const nextScreen = () => navigation.navigate("mainTab")
+    const { height, width } = useWindowDimensions();
 
     return (
       <View testID="WelcomeScreen" style={FULL}>
@@ -110,6 +116,38 @@ export const WelcomeScreen: FC<StackScreenProps<NavigatorParamList, "welcome">> 
             For everyone else, this is where you'll see a live preview of your fully functioning app
             using Ignite.
           </Text>
+
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{
+              width: heightDP((width - 32) / 2),
+              height: heightDP(50),
+              //height: 50,
+              padding: heightDP(5),
+              backgroundColor: "#FFFFFF",
+              justifyContent: 'center',
+               alignItems: 'center'
+            }}>
+              <Text style={{color: '#000000'}}>
+                {PixelRatio.get()}
+              </Text>
+            </View>
+
+
+            <View style={{
+              width: widthPercentageToDP('50'),
+              height: heightPercentageToDP('8.6'),
+              padding: PixelRatio.getPixelSizeForLayoutSize(10),
+              backgroundColor: "#FFFFFF"
+            }}>
+              <Text style={CONTENT}>
+                For everyone else, this is where you'll see a live preview of your fully functioning app
+                using Ignite. {PixelRatio.getPixelSizeForLayoutSize(360.0)}
+                {width}
+              </Text>
+            </View>
+          </View>
+
+
         </Screen>
         <SafeAreaView style={FOOTER}>
           <View style={FOOTER_CONTENT}>

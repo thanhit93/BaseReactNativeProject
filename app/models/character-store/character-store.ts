@@ -10,18 +10,23 @@ export const CharacterStoreModel = types
   .model("CharacterStore")
   .props({
     characters: types.optional(types.array(CharacterModel), []),
+    loading: types.optional(types.boolean, true),
   })
   .extend(withEnvironment)
   .actions((self) => ({
     saveCharacters: (characterSnapshots: CharacterSnapshot[]) => {
       self.characters.replace(characterSnapshots)
     },
+    setLoading: (value: boolean) => {
+      self.loading = value
+    },
   }))
   .actions((self) => ({
     getCharacters: async () => {
+      self.setLoading(true)
       const characterApi = new CharacterApi(self.environment.api)
       const result = await characterApi.getCharacters()
-
+      self.setLoading(false)
       if (result.kind === "ok") {
         self.saveCharacters(result.characters)
       } else {

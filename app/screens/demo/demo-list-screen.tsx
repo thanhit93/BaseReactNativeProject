@@ -1,4 +1,4 @@
-import React, { useEffect, FC } from "react"
+import React, { useEffect, FC, useState } from "react"
 import { FlatList, TextStyle, View, ViewStyle, ImageStyle } from "react-native"
 import { StackScreenProps } from "@react-navigation/stack"
 import { observer } from "mobx-react-lite"
@@ -46,14 +46,22 @@ export const DemoListScreen: FC<StackScreenProps<NavigatorParamList, "demoList">
   ({ navigation }) => {
     const goBack = () => navigation.goBack()
 
+    //const [loading, setLoading] = useState(false)
+
     const { characterStore } = useStores()
-    const { characters } = characterStore
+    const { characters, loading } = characterStore
+
+    async function fetchData() {
+      await characterStore.getCharacters()
+    }
+
+    const onRefresh = () => {
+      console.log("onRefresh")
+      //setLoading(false)
+      fetchData()
+    };
 
     useEffect(() => {
-      async function fetchData() {
-        await characterStore.getCharacters()
-      }
-
       fetchData()
     }, [])
 
@@ -69,6 +77,8 @@ export const DemoListScreen: FC<StackScreenProps<NavigatorParamList, "demoList">
             titleStyle={HEADER_TITLE}
           />
           <FlatList
+            onRefresh={onRefresh}
+            refreshing={loading ?? false}
             contentContainerStyle={FLAT_LIST}
             data={[...characters]}
             keyExtractor={(item) => String(item.id)}
